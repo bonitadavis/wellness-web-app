@@ -25,5 +25,34 @@
        <hr />
    {% endfor %}
 
+    <form onsubmit="return setNewGoalAction(this)" method="post">
+        <label for="name">Name of goal:</label>
+        <input type="text" id="name" name="name" required maxlength="25" size="10" /><br/>
+        <label for="type">Type of goal:</label>
+        <input type="radio" name="type">Physical</input>
+        <input type="radio" name="type">Mental</input><br/>
+        <label for="day">Days for goal:</label>
+        <input type="checkbox" id="0" name="day">Sunday</input>
+        <input type="checkbox" id="1" name="day">Monday</input>
+        <input type="checkbox" id="2" name="day">Tuesday</input>
+        <input type="checkbox" id="3" name="day">Wednesday</input>
+        <input type="checkbox" id="4" name="day">Thursday</input>
+        <input type="checkbox" id="5" name="day">Friday</input>
+        <input type="checkbox" id="6" name="day">Saturday</input><br/>
+        <button type="submit">Add goal</button>
+    </form>
+
+    <script>
+    function setNewGoalAction(form) {
+        let name = document.getElementById("name").value;
+        let t = Array.from(document.getElementsByName("type")).map(x => x.checked);
+        let type = t[0] ? "physical" : "mental";
+        let d = Array.from(document.getElementsByName("day")).map(x => x.checked + 0);
+        form.action = "/add?name=" + name + "&type=" + type + "&d0=" + d[0] +
+           "&d1=" + d[1] + "&d2=" + d[2] + "&d3=" + d[3] + "&d4=" + d[4] + "&d5=" + d[5] + "&d6=" + d[6];
+        return true;
+    }
+    </script>
+
 
 {% endblock %}
