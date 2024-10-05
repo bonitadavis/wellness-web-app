@@ -38,8 +38,8 @@ def register():
         return jsonify(success=False), response.status_code
 
 
-def complete_goal(user_id, goal_id):
-    goal = mongo.db.goals.find_one({"_id": goal_id, "user_id": user_id})
+def complete_goal(db, user_id, goal_id):
+    goal = db.users.insert_one({"_id": goal_id, "user_id": user_id})
     if goal:
         today_index = datetime.now().weekday()  # 0 = monday, 6 = sunday and loops every week
         if goal['days_of_week'][today_index] and not goal['completed']:
@@ -65,7 +65,7 @@ def calculate_limit(days_of_week):
             
     return limit
 
-def create_goal(user_id, title, category, days, notifications):
+def create_goal(db, user_id, title, category, days, reminders):
     limit = calculate_limit(days)
     goal = {
         "user_id": user_id,
@@ -73,22 +73,21 @@ def create_goal(user_id, title, category, days, notifications):
         "category": category,
         # "description": description,
         "days": days,
-        "notifications": notifications,
-        "times-completed": 0,
+        "reminders": reminders,
+        "times_completed": 0,
         "limit": limit,
         "streak": 0,
-        "completed_dates": [],
         "completed": False
     }
-    mongo.db.goals.insert_one(goal)
+    db.goals.insert_one(goal)
 
-def update_goal(goal_id, completed_date):
-    mongo.db.goals.update_one({"_id": goal_id}, {"$addToSet": {"completed_dates": completed_date}})
+def update_goal(db, goal_id, times_completed):
+    db.goals.update_one({"_id": goal_id}, {"$addToSet": {"completed_dates": times_completed}})
 
-def edit_goal(user_id, goal_id, updated_data):
-    goal = mongo.db.goals.find_one({"_id": goal_id, "user_id": user_id})
+def edit_goal(db, user_id, goal_id, updated_data):
+    goal = db.users.insert_one({"_id": goal_id, "user_id": user_id})
     if goal:
-        # Update only the fields that were provided in updated_data
+
         updated_fields = {}
         if 'title' in updated_data:
             updated_fields['title'] = updated_data['title']
@@ -96,13 +95,12 @@ def edit_goal(user_id, goal_id, updated_data):
             updated_fields['category'] = updated_data['category']
         if 'days_of_week' in updated_data:
             updated_fields['days_of_week'] = updated_data['days_of_week']
-            # Recalculate limit if days_of_week is updated
             updated_fields['limit'] = calculate_limit(updated_data['days_of_week'])
         if 'notifications' in updated_data:
             updated_fields['notifications'] = updated_data['notifications']
         
         # Update the goal in the database
-        mongo.db.goals.update_one({"_id": goal_id}, {"$set": updated_fields})
+        db.goals.update_one({"_id": goal_id}, {"$set": updated_fields})
         return True
     return False
 
