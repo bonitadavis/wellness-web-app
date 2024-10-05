@@ -1,6 +1,4 @@
-import { createClient } from "@propelauth/javascript";
-
-const authClient = createClient({
+const authClient = PropelAuth.createClient({
     // The base URL where your authentication pages are hosted. You can find this under the Frontend Integration section for your project.
     authUrl: "https://62994739.propelauthtest.com",
     // If true, periodically refresh the access token in the background. This helps ensure you always have a valid token ready to go. Default true.
