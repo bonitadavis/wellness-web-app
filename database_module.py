@@ -1,8 +1,12 @@
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import os
 
-uri = "mongodb+srv://sarahmendoza:password@cluster0.cmoki.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+if "MONGODB_PASS" in os.environ:
+    uri = "mongodb+srv://sarahmendoza:{}@cluster0.cmoki.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0".format(os.environ["MONGODB_PASS"])
+else:
+    raise "MONGODB_PASS not in environment"
 
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
