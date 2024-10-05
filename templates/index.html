@@ -14,6 +14,23 @@
        </div>
    </section>
 
+    <!-- Login Status Display -->
+    <div id="display-when-logged-out">
+        <p>You are not logged in</p>
+        <button id="signup">Sign Up</button>
+        <button id="login">Login</button>
+    </div>
+    <div id="display-when-logged-in" style="display: none;">
+        <p>You are logged in <span id="email"></span></p>
+        <button id="account">Account</button>
+        <button id="logout">Logout</button>
+    </div>
+
+   {% for post in posts %}
+        <a href="#"><h2>{{ post['title'] }}</h2></a>
+        <span class="badge badge-primary">{{ post['created'] }}</span>
+        <hr />
+
    <h2>Goals for {{data[0]['name']}}</h2>
 
    {% for goal in data[1:] %}
@@ -23,7 +40,10 @@
            <button type="submit">Update goal</button>
        </form>
        <hr />
+
    {% endfor %}
 
 
 {% endblock %}
+
+<script src="{{ url_for('static', filename='index.js') }}"></script>
