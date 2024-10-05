@@ -18,5 +18,18 @@
         <a href="#"><h2>{{ post['title'] }}</h2></a>
         <span class="badge badge-primary">{{ post['created'] }}</span>
         <hr />
+
+   <h2>Goals for {{data[0]['name']}}</h2>
+
+   {% for goal in data[1:] %}
+       <a href="#"><h2>{{ goal['title'] }}</h2></a>
+       <div class="pie" style="--p:{{ (goal['days'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
+       <form action="/update?goal={{ loop.index }}" method="post">
+           <button type="submit">Update goal</button>
+       </form>
+       <hr />
+
    {% endfor %}
+
+
 {% endblock %}
