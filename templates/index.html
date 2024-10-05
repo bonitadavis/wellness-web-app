@@ -1,15 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>SMU Mental Health and Wellness</title>
-</head>
-<body>
-   <h1>Welcome to SMU Mental Health and Wellness</h1>
+{% extends 'base.html' %}
+
+{% block title %}SMU Mental Health and Wellness{% endblock %}
+
+{% block content %}
+   <section class="jumbotron text-center">
+       <div class="container">
+           <h1 class="jumbotron-heading">Welcome!</h1>
+           <p class="lead text-muted">
+           Please login to the platform!
+           </p>
+           <a class="btn btn-primary my-2" href="#">Login</a>
+           <a class="btn btn-secondary my-2" href="#">Sign up</a>
+       </div>
+   </section>
+
    {% for post in posts %}
         <a href="#"><h2>{{ post['title'] }}</h2></a>
         <span class="badge badge-primary">{{ post['created'] }}</span>
         <hr />
    {% endfor %}
-</body>
-</html>
+{% endblock %}
