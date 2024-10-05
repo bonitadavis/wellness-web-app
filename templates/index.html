@@ -15,8 +15,13 @@
    </section>
 
    {% for post in posts %}
-        <a href="#"><h2>{{ post['title'] }}</h2></a>
-        <span class="badge badge-primary">{{ post['created'] }}</span>
-        <hr />
+       <a href="#"><h2>{{ post['title'] }}</h2></a>
+       <div class="pie" style="--p:{{ (post['days'] / post['limit'] * 100) | int }}">A</div>
+       <form action="/update" method="post">
+           <button type="submit">Update goal</button>
+       </form>
+       <hr />
    {% endfor %}
+
+
 {% endblock %}
