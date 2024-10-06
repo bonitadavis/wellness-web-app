@@ -1,54 +1,35 @@
 
-from flask_jwt_extended import create_access_token, get_jwt_identity
 import calendar
-from datetime import datetime, timedelta
 import pymongo as mongo
+from apscheduler.schedulers.background import BackgroundScheduler
+import datetime
+import uuid
 
-def register_user(DB, name, username, email, password):
-    db = DB
+def register_user(db, name, email, user_id):
     db.users.insert_one({
-        "username": username,
-        "password": password,
         "name": name,
-        "email": email
-    })
-    access_token = create_access_token(identity=username)
-    return access_token
-
-def register():
-    data = request.json
-    name = data.get('name')
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    
-    payload = {
-        "name": name,
-        "username": username,
         "email": email,
-        "password": password
-    }
-    
-    # Send the registration request to PropelAuth
-    response = requests.post(PROPEL_AUTH_REGISTER_URL, json=payload)
-    
-    if response.status_code == 201:
-        return jsonify(success=True), 201
-    else:
-        return jsonify(success=False), response.status_code
+        "user_id":user_id
+    })
 
 
 def complete_goal(db, user_id, goal_id):
-    goal = db.users.insert_one({"_id": goal_id, "user_id": user_id})
+    goal = db.goals.find_one({"goal_id": goal_id, "user_id": user_id})
     if goal:
-        today_index = datetime.now().weekday()  # 0 = monday, 6 = sunday and loops every week
-        if goal['days_of_week'][today_index] and not goal['completed']:
-            goal['times_completed'] += 1
-            update_goal(goal_id, datetime.now().date())
-            if goal['times_completed'] >= goal['limit']:
-                mongo.db.goals.update_one({"_id": goal_id}, {"$set": {"completed": True}})
+        today_index = datetime.now().weekday()
+        if goal['days'][today_index] and not (goal['completed'] or goal['daily_completed']):
+            # Increment times_completed and update goal in the DB
+            db.goals.update_one(
+                {"goal_id": goal_id},
+                {"$inc": {"times_completed": 1}},
+                {"$set": {"daily_completed": True}}
+            )
+            # Check if limit is reached
+            if goal['times_completed'] + 1 >= goal['limit']:
+                db.goals.update_one({"goal_id": goal_id}, {"$set": {"completed": True}})
             return True
     return False
+
 
 def calculate_limit(days_of_week):
     today = datetime.now()
@@ -65,48 +46,166 @@ def calculate_limit(days_of_week):
             
     return limit
 
+
 def create_goal(db, user_id, title, category, days, reminders):
     limit = calculate_limit(days)
+    goal_id = str(uuid.uuid4()) 
     goal = {
+        "goal_id": goal_id,
         "user_id": user_id,
         "title": title,
         "category": category,
-        # "description": description,
         "days": days,
         "reminders": reminders,
         "times_completed": 0,
         "limit": limit,
         "streak": 0,
-        "completed": False
+        "completed": False,
+        "daily_completed": False
     }
-    db.goals.insert_one(goal)
+    db.goals.insert_one(goal) 
 
-def update_goal(db, goal_id, times_completed):
-    db.goals.update_one({"_id": goal_id}, {"$addToSet": {"completed_dates": times_completed}})
 
-def edit_goal(db, user_id, goal_id, updated_data):
-    goal = db.users.insert_one({"_id": goal_id, "user_id": user_id})
-    if goal:
+def update_goal(db, goal_id):
+    db.goals.update_one(
+        {"goal_id": goal_id},
+        {
+            "$inc": {"times_completed": 1}, 
+            "$set": {"daily_completed": True}  
+        }
+    )
 
-        updated_fields = {}
-        if 'title' in updated_data:
-            updated_fields['title'] = updated_data['title']
-        if 'category' in updated_data:
-            updated_fields['category'] = updated_data['category']
-        if 'days_of_week' in updated_data:
-            updated_fields['days_of_week'] = updated_data['days_of_week']
-            updated_fields['limit'] = calculate_limit(updated_data['days_of_week'])
-        if 'notifications' in updated_data:
-            updated_fields['notifications'] = updated_data['notifications']
+
+def edit_goal(db, request, goal_id):
+    if request.method == 'DELETE':
+        db.goals.delete_one({"_id": goal_id})
+
+    if request.method == 'PUT':
+        data = request.json 
+        update_data = {key: data[key] for key in data if key != 'goal_id'}
         
-        # Update the goal in the database
-        db.goals.update_one({"_id": goal_id}, {"$set": updated_fields})
-        return True
-    return False
+        db.goals.update_one({"_id": goal_id}, {"$set": update_data})
+
+def reset_daily_goals(db):
+
+    db.goals.update_many(
+        {"daily_completed": True}, 
+        {"$set": {"daily_completed": False}}
+    )
+
+scheduler = BackgroundScheduler()
+
+# Schedule the reset function
+scheduler.add_job(reset_daily_goals, 'cron', hour=0, minute=0, args=[db])
+scheduler.start()
 
 
 
 
+#####FIRST ATTEMPT#######
+# def register_user(DB, name, username, email, password):
+#     db = DB
+#     db.users.insert_one({
+#         "username": username,
+#         "password": password,
+#         "name": name,
+#         "email": email
+#     })
+#     access_token = create_access_token(identity=username)
+#     return access_token
+
+# def register():
+#     data = request.json
+#     name = data.get('name')
+#     username = data.get('username')
+#     email = data.get('email')
+#     password = data.get('password')
+    
+#     payload = {
+#         "name": name,
+#         "username": username,
+#         "email": email,
+#         "password": password
+#     }
+    
+#     # Send the registration request to PropelAuth
+#     response = requests.post(PROPEL_AUTH_REGISTER_URL, json=payload)
+    
+#     if response.status_code == 201:
+#         return jsonify(success=True), 201
+#     else:
+#         return jsonify(success=False), response.status_code
+
+
+# def complete_goal(db, user_id, goal_id):
+#     goal = db.users.insert_one({"_id": goal_id, "user_id": user_id})
+#     if goal:
+#         today_index = datetime.now().weekday()  # 0 = monday, 6 = sunday and loops every week
+#         if goal['days_of_week'][today_index] and not goal['completed']:
+#             goal['times_completed'] += 1
+#             update_goal(goal_id, datetime.now().date())
+#             if goal['times_completed'] >= goal['limit']:
+#                 db.goals.update_one({"_id": goal_id}, {"$set": {"completed": True}})
+#             return True
+#     return False
+
+# def calculate_limit(days_of_week):
+#     today = datetime.now()
+#     next_month = (today.month % 12) + 1
+#     year = today.year if next_month > 1 else today.year + 1
+    
+#     num_days = calendar.monthrange(year, next_month)[1]
+    
+#     limit = 0
+#     for day in range(1, num_days + 1):
+#         weekday = (datetime(year, next_month, day).weekday()) 
+#         if days_of_week[weekday]:
+#             limit += 1
+            
+#     return limit
+
+# def create_goal(db, user_id, title, category, days, reminders):
+#     limit = calculate_limit(days)
+#     goal = {
+#         "user_id": user_id,
+#         "title": title,
+#         "category": category,
+#         # "description": description,
+#         "days": days,
+#         "reminders": reminders,
+#         "times_completed": 0,
+#         "limit": limit,
+#         "streak": 0,
+#         "completed": False
+#     }
+#     db.goals.insert_one(goal)
+
+# def update_goal(db, goal_id):
+#     today = datetime.date.today()
+#     db.goals.update_one(
+#         {"_id": goal_id},
+#         {
+#             "$inc": {"times_completed": 1}, 
+#             "$set": {"completed": True}  
+#         }
+#     )
+
+
+# def edit_goal(db, request, goal_id):
+#     if request.method == 'DELETE':
+#         db.goals.delete_one({"_id": goal_id})
+
+#     if request.method == 'PUT':
+#         data = request.json 
+#         update_data = {key: data[key] for key in data if key != 'goal_id'}
+        
+#         db.goals.update_one({"_id": goal_id}, {"$set": update_data})
+
+
+
+
+
+######OTHER REPOS#######
 # from pymongo import MongoClient
 # from bson.objectid import ObjectId
 # from apscheduler.schedulers.background import BackgroundScheduler
