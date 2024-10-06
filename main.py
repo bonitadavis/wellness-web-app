@@ -84,7 +84,8 @@ def login_user():
     return login_user_internal(user_id, email, name)
 
 def login_user_internal(user_id: str, email: str, name: str):
-    print("We logged in {} whose email is {} and ID is {}".format(name, email, userID))
+    global global_user_id
+    print("We logged in {} whose email is {} and ID is {}".format(name, email, user_id))
     if (models.db["users"].find_one({"userID": global_user_id}) is None):
         models.register_user(models.db, name, email, user_id)
     global_user_id = user_id
@@ -134,7 +135,7 @@ def whoami():
           return jsonify({"error": "Missing authorization header"}), 401
      try:
         user = auth.validate_access_token_and_get_user(auth_header)
-        return jsonify({"userID": user.userID, "email": user.email}), 200
+        return jsonify({"user_id": user.user_id, "email": user.email}), 200
      except UnauthorizedException:
         return jsonify({"error": "Invalid access token"}), 401
 
