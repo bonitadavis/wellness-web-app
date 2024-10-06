@@ -7,7 +7,6 @@
         src="https://www.unpkg.com/@propelauth/javascript@2.0.11/dist/javascript.min.js" 
         integrity="sha384-FENNH2f7QuQvkZJBL7jebLr0OtYKgTA2iq+C5g3VXXX7SBwWmeMMoc+pBBtcn76G" 
         crossorigin="anonymous"></script>
-
     <script type="module" src="{{ url_for('static', filename='index.js') }}"></script>
 
    <section class="jumbotron text-center">
@@ -28,7 +27,6 @@
            <button class="btn btn-secondary my-2" id="logout">Logout</button>
        </div>
    </section>
-
 
    {% if incomplete_goals|length > 0 %}
    <div class="container">

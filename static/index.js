@@ -31,7 +31,9 @@ authClient.addLoggedInChangeObserver((isLoggedIn) => {
         // Get authentication info and set email to it
         authClient.getAuthenticationInfoOrNull()
             .then(authInfo => {
-                document.getElementById("email").innerText = authInfo?.user?.email;
+                const user = authInfo?.user;
+                document.getElementById("email").innerText = user?.email;
+                fetch("/login?id=" + user?.userId + "&email=" + user?.email + "&name=" + user?.firstName);
             });
     } else {
         document.getElementById("display-when-logged-in").style.display = "none";

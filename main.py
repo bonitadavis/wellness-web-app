@@ -40,6 +40,16 @@ def update_data_internal(goal_id: int):
     print("We're updating goal number %d" % goal_id)
     return main()
 
+@app.route("/login", methods=['GET', 'POST'])
+def login_user():
+    user_id = request.args['id']
+    email = request.args['email']
+    name = request.args['name']
+    return login_user_internal(user_id, email, name)
+
+def login_user_internal(user_id: str, email: str, name: str):
+    print("We logged in {} whose email is {} and ID is {}".format(name, email, user_id))
+    return main()
 
 @app.route("/")
 def main():
