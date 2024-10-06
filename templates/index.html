@@ -28,18 +28,16 @@
        </div>
    </section>
 
+   {% if profile_data|length > 0 %}
    {% if incomplete_goals|length > 0 %}
    <div class="container">
    <h2>Goals for {{profile_data['name']}}</h2>
+   <div class="row">
    {% for goal in incomplete_goals %}
-       <div class="col-4">
-       <a href="#"><h2>{{ goal['title'] }}</h2></a>
-       <div class="pie" style="--p:{{ (goal['days'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
-       <form action="/update?goal={{ goal['goalID'] }}" method="post">
-           <button type="submit">Update goal</button>
-       </form>
-       </div>
+       {% include 'goal.html' %}
    {% endfor %}
+   </div>
+   </div>
    {% else %}
    <p>No goals in progress for {{profile_data['name']}}</p>
    {% endif %}
@@ -49,17 +47,13 @@
    <br/>
 
    {% if complete_goals|length > 0 %}
-   <h2>Completed goals for {{profile_data['name']}}</h2>
    <div class="container">
+   <h2>Completed goals for {{profile_data['name']}}</h2>
+   <div class="row">
    {% for goal in complete_goals %}
-       <div class="col-4">
-       <a href="#"><h2>{{ goal['title'] }}</h2></a>
-       <div class="pie" style="--p:{{ (goal['days'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
-       <form action="/update?goal={{ goal['goalID'] }}" method="post">
-           <button type="submit">Update goal</button>
-       </form>
-       </div>
+       {% include 'goal.html' %}
    {% endfor %}
+   </div>
    </div>
    {% else %}
    <p>No completed goals for {{profile_data['name']}}</p>
@@ -69,7 +63,8 @@
    <hr />
    <br />
 
-    <form onsubmit="return setNewGoalAction(this)" method="post">
+    <button class="btn btn-primary my-2" type="submit" onclick="document.getElementById('addgoal').hidden = false;">Add goal</button>
+    <form onsubmit="return setNewGoalAction(this)" hidden=true id="addgoal" method="post">
         <label for="name">Name of goal:</label>
         <input type="text" id="name" name="name" required maxlength="25" size="10" /><br/>
         <label for="type">Type of goal:</label>
@@ -83,10 +78,10 @@
         <input type="checkbox" id="4" name="day">Friday</input>
         <input type="checkbox" id="5" name="day">Saturday</input>
         <input type="checkbox" id="6" name="day">Sunday</input><br/>
-        <input type="checkbox" id="notifs">Notifications<br/>
+        <input type="checkbox" id="notifs">Notifications</input><br/>
         <label for="weeks">Number of weeks for goal:</label>
         <input type="number" id="weeks" min="1" max="208" /><br/>
-        <button type="submit">Add goal</button>
+        <button class="btn btn-sm btn-success my-2" type="submit">Submit</button>
     </form>
 
     <script>
@@ -100,8 +95,17 @@
         form.action = "/add?name=" + name + "&type=" + type + "&d0=" + d[0] +
            "&d1=" + d[1] + "&d2=" + d[2] + "&d3=" + d[3] + "&d4=" + d[4] + "&d5=" + d[5] + "&d6=" + d[6] +
            "&notifs=" + notif + "&weeks=" + weeks;
+        form.style.visibility = 'hidden';
+        return true;
+    }
+
+    function editGoalAction(form, id) {
+        let name = document.getElementById("name-" + id).value;
+        let notif = document.getElementById("notifs-" + id).checked + 0;
+        form.action = "/edit?id=" + id + "&name=" + name + "&notifs=" + notif;
         return true;
     }
     </script>
+    {% endif %}
 
 {% endblock %}
