@@ -105,7 +105,17 @@
         form.action = "/edit?id=" + id + "&name=" + name + "&notifs=" + notif;
         return true;
     }
+
+    function submitMessageAction(form) {
+        let value = document.getElementById("chatmsg").value;
+        form.action = "/message?text=" + value;
+        console.log(form.action);
+        return true;
+    }
     </script>
+    {% include 'chat.html' %}
     {% endif %}
 
 {% endblock %}
+
+    
