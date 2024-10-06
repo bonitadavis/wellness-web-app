@@ -32,9 +32,12 @@
    {% if incomplete_goals|length > 0 %}
    <div class="container">
    <h2>Goals for {{profile_data['name']}}</h2>
+   <div class="row">
    {% for goal in incomplete_goals %}
        {% include 'goal.html' %}
    {% endfor %}
+   </div>
+   </div>
    {% else %}
    <p>No goals in progress for {{profile_data['name']}}</p>
    {% endif %}
@@ -44,11 +47,13 @@
    <br/>
 
    {% if complete_goals|length > 0 %}
-   <h2>Completed goals for {{profile_data['name']}}</h2>
    <div class="container">
+   <h2>Completed goals for {{profile_data['name']}}</h2>
+   <div class="row">
    {% for goal in complete_goals %}
        {% include 'goal.html' %}
    {% endfor %}
+   </div>
    </div>
    {% else %}
    <p>No completed goals for {{profile_data['name']}}</p>
