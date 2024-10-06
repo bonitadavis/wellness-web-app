@@ -28,15 +28,17 @@
        </div>
    </section>
 
+   {% if profile_data|length > 0 %}
    {% if incomplete_goals|length > 0 %}
    <div class="container">
    <h2>Goals for {{profile_data['name']}}</h2>
    {% for goal in incomplete_goals %}
        <div class="col-4">
        <a href="#"><h2>{{ goal['title'] }}</h2></a>
-       <div class="pie" style="--p:{{ (goal['days'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
-       <form action="/update?goal={{ goal['goalID'] }}" method="post">
-           <button type="submit">Update goal</button>
+       <p>{{ goal['weeks'] }} week goal for {{ goal['user_days'] }}</p>
+       <div class="pie" style="--p:{{ (goal['times_completed'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
+       <form action="/complete?goal={{ goal['goalID'] }}" method="post">
+           <button type="submit">Complete goal for today</button>
        </form>
        </div>
    {% endfor %}
@@ -54,9 +56,10 @@
    {% for goal in complete_goals %}
        <div class="col-4">
        <a href="#"><h2>{{ goal['title'] }}</h2></a>
-       <div class="pie" style="--p:{{ (goal['days'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
-       <form action="/update?goal={{ goal['goalID'] }}" method="post">
-           <button type="submit">Update goal</button>
+       <p>{{ goal['weeks'] }} week goal for {{ goal['user_days'] }}</p>
+       <div class="pie" style="--p:{{ (goal['times_completed'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
+       <form action="/complete?goal={{ goal['goalID'] }}" method="post">
+           <button type="submit">Complete goal for today</button>
        </form>
        </div>
    {% endfor %}
@@ -103,5 +106,6 @@
         return true;
     }
     </script>
+    {% endif %}
 
 {% endblock %}
