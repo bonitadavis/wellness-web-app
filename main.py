@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from propelauth_py import init_base_auth, UnauthorizedException
 from collections import namedtuple
+from bson import ObjectId
 import models
 
 app = Flask(__name__)
@@ -22,11 +23,16 @@ def get_data() -> dict[list]:
         if (user is None):
             print("User does not exist in database, displaying logged out view")
             return []
+        
+        if "_id" in user:
+            user["_id"] = str(user["_id"])
 
         print(user)
         goals = [*models.db["goals"].find({"userID": user.get("userID", 0)})]
         print("There are {} goals".format(len(goals)))
         for goal in goals:
+            if "_id" in goal:
+                goal["_id"] = str(goal["_id"])
             print(goal)
         goals.insert(0, user)
         return goals
@@ -84,7 +90,8 @@ def login_user():
     return login_user_internal(user_id, email, name)
 
 def login_user_internal(user_id: str, email: str, name: str):
-    print("We logged in {} whose email is {} and ID is {}".format(name, email, userID))
+    global global_user_id
+    print("We logged in {} whose email is {} and ID is {}".format(name, email, user_id))
     if (models.db["users"].find_one({"userID": global_user_id}) is None):
         models.register_user(models.db, name, email, user_id)
     global_user_id = user_id
@@ -134,7 +141,7 @@ def whoami():
           return jsonify({"error": "Missing authorization header"}), 401
      try:
         user = auth.validate_access_token_and_get_user(auth_header)
-        return jsonify({"userID": user.userID, "email": user.email}), 200
+        return jsonify({"user_id": user.user_id, "email": user.email}), 200
      except UnauthorizedException:
         return jsonify({"error": "Invalid access token"}), 401
 
