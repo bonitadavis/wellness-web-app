@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 from propelauth_py import init_base_auth, UnauthorizedException
 from collections import namedtuple
+from datetime import datetime
 from bson import ObjectId
 import models
+import chatbot_module
 
 app = Flask(__name__)
 
@@ -14,6 +16,8 @@ auth = init_base_auth(
 
 #global_user_id = 0
 global_user_id = "123456"
+global_message_pairs = []
+global_chat_history = ""
 
 def get_data() -> dict[list]:
     # print([*models.db["users"].find({})])
@@ -97,9 +101,26 @@ def login_user_internal(user_id: str, email: str, name: str):
     global_user_id = user_id
     return get_data()
 
+@app.route("/message", methods=['GET', 'POST'])
+def message_user():
+    global global_message_pairs
+    message = request.args['text']
+    global_message_pairs.append(message_user_internal(message))
+    return main()
+
+def message_user_internal(msg: str):
+    print("We are messaging {}".format(msg))
+    user_msg = {"date": datetime.now(), "msg": msg}
+    global global_chat_history
+    response, global_chat_history = chatbot_module.call_chatbot(msg, global_chat_history)
+    bot_msg = {"date": datetime.now(), "msg": response}
+    return (user_msg, bot_msg)
+
 @app.route("/")
 def main():
      """Main page of the app"""
+     print(global_message_pairs)
+
      # Front-end conversion for display
      print("Getting data")
      our_data = get_data()
@@ -127,12 +148,14 @@ def main():
         return render_template("index.html",
             profile_data = profile_data,
             incomplete_goals = incomplete_goals,
-            complete_goals = complete_goals)
+            complete_goals = complete_goals,
+            messages = global_message_pairs)
      else:
          return render_template("index.html",
              profile_data = [],
              incomplete_goals = [],
-             complete_goals = [])
+             complete_goals = [],
+             messages = [])
 
 @app.route("/api/whoami", methods=["GET"])
 def whoami():
