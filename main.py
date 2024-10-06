@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from propelauth_py import init_base_auth, UnauthorizedException
 from collections import namedtuple
+from bson import ObjectId
 import models
 
 app = Flask(__name__)
@@ -22,11 +23,16 @@ def get_data() -> dict[list]:
         if (user is None):
             print("User does not exist in database, displaying logged out view")
             return []
+        
+        if "_id" in user:
+            user["_id"] = str(user["_id"])
 
         print(user)
         goals = [*models.db["goals"].find({"userID": user.get("userID", 0)})]
         print("There are {} goals".format(len(goals)))
         for goal in goals:
+            if "_id" in goal:
+                goal["_id"] = str(goal["_id"])
             print(goal)
         goals.insert(0, user)
         return goals
