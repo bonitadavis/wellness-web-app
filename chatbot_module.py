@@ -1,24 +1,25 @@
-from models import create_goal, register_user, complete_goal, update_goal, edit_goal, reset_daily_goals
+from models import create_goal #, register_user, complete_goal, update_goal, edit_goal, reset_daily_goals
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import os
 
-if "MONGODB_PASS" in os.environ:
-    uri = "mongodb+srv://sarahmendoza:{}@cluster0.cmoki.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0".format(os.environ["MONGODB_PASS"])
-else:
-    raise "MONGODB_PASS not in environment"
+# if "MONGODB_PASS" in os.environ:
+#     uri = "mongodb+srv://sarahmendoza:{}@cluster0.cmoki.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0".format(os.environ["MONGODB_PASS"])
+# else:
+#     raise "MONGODB_PASS not in environment"
 
-# Create a new client and connect to the server
-client = MongoClient(uri, server_api=ServerApi('1'))
+# # Create a new client and connect to the server
+# client = MongoClient(uri, server_api=ServerApi('1'))
 
-# Send a ping to confirm a successful connection
-try:
-    client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
-    print(e)
+# # Send a ping to confirm a successful connection
+# try:
+#     client.admin.command('ping')
+#     print("Pinged your deployment. You successfully connected to MongoDB!")
+# except Exception as e:
+#     print(e)
 
-db = client["SMU_HealthTracker"]
+# db = client["SMU_HealthTracker"]
+
 
 #############ATTEMPT ONE####################
 from langchain import hub
@@ -103,11 +104,12 @@ chain_with_message_history = RunnableWithMessageHistory(
 days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
-while True:
-    q = input("> ")
+#while True:
+def call_chatbot(question, history):
+    q = question
 
     if q.lower() in ["exit", "quit", "bye", "thank you bye", "goodbye"]:
-        break
+        prompt_text = "Say goodbye and wish them well."
 
     # Check for greetings
     is_greeting = any(greet in q.lower() for greet in ["hello", "hi", "hey"])
@@ -128,37 +130,36 @@ while True:
     # elif "mental health management" in q.lower():
     #     resource_response = resources["mental health management"]
 
-    
-    
-
-
     if is_greeting:
         prompt_text = "You are a friendly assistant. When greeted, respond warmly and concisely."
-    elif is_goal_creation:
-        title = input("What is the title of your goal? ")
-        category = input("What category is this goal in? ")
+    # elif is_goal_creation:
+    #     title = input("What is the title of your goal? ")
+    #     category = input("What category is this goal in? ")
 
         # Display the days of the week for selection
-        print("Which days do you want to work on this goal? (Select by number, separated by commas):")
-        for i, day in enumerate(days_of_week):
-            print(f"{i + 1}. {day}")
+        # reponse = "Which days do you want to work on this goal? (Select by number, separated by commas):" + "\n"
+        # for i, day in enumerate(days_of_week):
+        #     response += f"{i + 1}. {day}" + "\n"
 
         # Get user input for days
-        selected_days = input("Enter the numbers of the days (e.g., 1,3,5): ")
-        selected_indices = [int(i.strip()) - 1 for i in selected_days.split(",") if i.strip().isdigit()]
-        days = [i in selected_indices for i in range(len(days_of_week))]
+        # selected_days = input("Enter the numbers of the days (e.g., 1,3,5): ")
+        # selected_indices = [int(i.strip()) - 1 for i in selected_days.split(",") if i.strip().isdigit()]
+        # days = [i in selected_indices for i in range(len(days_of_week))]
 
-        reminders = input("Would you like to set reminders? (yes/no) ").lower() == 'yes'
-        weeks = int(input("For how many weeks do you want to set this goal? "))
+        # reminders = input("Would you like to set reminders? (yes/no) ").lower() == 'yes'
+        # weeks = int(input("For how many weeks do you want to set this goal? "))
 
-        #retrieve from session
-        user_id = 123456  
+        # #retrieve from session
+        # user_id = 123456  
 
-        # Create the goal in the database
-        create_goal(db, user_id, title, category, days, reminders, weeks)
+        # # Create the goal in the database
+        # create_goal(db, user_id, title, category, days, reminders, weeks)
 
-        print("Your goal has been created successfully! I'm glad I could help and best of luck with your goals :)")
-        break
+        # response = "Your goal has been created successfully! I'm glad I could help and best of luck with your goals :)"
+        # updated_history = history + "Human message: " + q + "\n AI Message: " + response + "\n" 
+        # return (response, updated_history)
+
+        # prompt_text = "Say goodbye, thank you and wish them well."
     elif is_health_related:
         prompt_text = "You are a helpful assistant focused on health goals. User: {user_input}".format(user_input=q)
     else:
@@ -169,7 +170,7 @@ while True:
     # Prepare the input data for the model
     input_data = {
         "input": prompt_text,
-        "chat_history": convo_history.messages,
+        "chat_history": history,
         "context" : resources
     }
 
@@ -179,17 +180,22 @@ while True:
         config={"configurable": {"session_id": SESSION_ID}}
     )
 
+    updated_history = history + "Human message: " + q + "\n AI Message: " + response + "\n" 
+    return (response, updated_history)
     # Print the response
-    print(response)
+    #print(response)
+    #send_response(response)
 
-    # Add the user and AI messages to the conversation history
-    convo_history.add_message(q)
-    convo_history.add_ai_message(response)
+    # # Add the user and AI messages to the conversation history
+    # convo_history.add_message(q)
+    # convo_history.add_ai_message(response)
 
-    # Optional: Clear conversation history after a greeting to limit context
-    if is_greeting:
-        convo_history.clear()  # or reset to limit context carry-over
+    # # Optional: Clear conversation history after a greeting to limit context
+    # if is_greeting:
+    #     convo_history.clear()  # or reset to limit context carry-over
 
+
+call_chatbot
 
 
 
