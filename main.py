@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from propelauth_py import init_base_auth, UnauthorizedException
-import random
+from collections import namedtuple
 import models
 
 app = Flask(__name__)
@@ -19,6 +19,10 @@ def get_data() -> dict[list]:
 
     if (global_user_id != 0):
         user = models.db["users"].find_one({"userID": global_user_id})
+        if (user is None):
+            print("User does not exist in database, displaying logged out view")
+            return []
+
         print(user)
         goals = [*models.db["goals"].find({"userID": user.get("userID", 0)})]
         print("There are {} goals".format(len(goals)))
@@ -47,6 +51,20 @@ def add_data_internal(name: str, goal_type: str, days: list[bool], notifs: bool,
     models.create_goal(models.db, global_user_id, name, goal_type, days, notifs, weeks)
     return main()
 
+@app.route("/edit", methods=['GET', 'POST'])
+def edit_goal():
+    """Do something to edit a goal"""
+    goal_id = request.args['id']
+    name = request.args['name']
+    notifs = int(request.args['notifs']) != 0
+    return edit_goal_internal(goal_id, name, notifs)
+
+def edit_goal_internal(goal_id: str, name: str, notifs: bool):
+    print("We're changing goal number {} to name {} and notifications {}".format(goal_id, name, notifs))
+    Request = namedtuple("Request", ["method", "json"])
+    models.edit_goal(models.db, Request("PUT", {"name": name, "reminders": notifs}), goal_id)
+    return main()
+
 @app.route("/complete", methods=['GET', 'POST'])
 def complete_goal():
     """Do something to update data"""
@@ -59,6 +77,7 @@ def complete_goal_internal(goal_id: str):
 
 @app.route("/login", methods=['GET', 'POST'])
 def login_user():
+    """Do something to log in a user"""
     user_id = request.args['id']
     email = request.args['email']
     name = request.args['name']
