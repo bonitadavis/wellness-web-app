@@ -12,6 +12,30 @@ auth = init_base_auth(
 def get_posts():
      return [{"title": "Python hello", "created": "3"}]
 
+@app.route("/add", methods=['GET', 'POST'])
+def add_data():
+    """Do something to add a goal"""
+    name = request.args['name']
+    goal_type = request.args['type']
+    days = []
+    for i in range(0, 7):
+        days.append(request.args["d%d" % i] == 0)
+    return add_data_internal(name, goal_type, days)
+
+def add_data_internal(name: str, goal_type: str, days: list[bool]):
+    print("We're adding {} {} {}".format(name, goal_type, days))
+    return main()
+
+@app.route("/update", methods=['GET', 'POST'])
+def update_data():
+    """Do something to update data"""
+    return update_data_internal(int(request.args['goal']))
+
+def update_data_internal(goal: int):
+    print("We're updating goal number %d" % goal)
+    return main()
+
+
 @app.route("/")
 def main():
      """Main page of the app"""
