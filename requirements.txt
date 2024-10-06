@@ -3,4 +3,7 @@ gunicorn
 pymongo
 apscheduler
 datetime
+langchain
+langchain_community
+langchain_huggingface
 propelauth_py
