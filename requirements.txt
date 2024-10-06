@@ -3,3 +3,4 @@ gunicorn
 pymongo
 apscheduler
 datetime
+propelauth_py
