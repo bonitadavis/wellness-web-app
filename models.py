@@ -2,8 +2,31 @@
 import calendar
 import pymongo as mongo
 from apscheduler.schedulers.background import BackgroundScheduler
-import datetime
 import uuid
+from datetime import datetime, timedelta
+
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+import os
+
+if "MONGODB_PASS" in os.environ:
+    uri = "mongodb+srv://sarahmendoza:{}@cluster0.cmoki.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0".format(os.environ["MONGODB_PASS"])
+else:
+    raise "MONGODB_PASS not in environment"
+
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+# Send a ping to confirm a successful connection
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+
+db = client["SMU_HealthTracker"]
+#collection = db["movies"]
+
 
 def register_user(db, name, email, user_id):
     db.users.insert_one({
@@ -31,25 +54,27 @@ def complete_goal(db, user_id, goal_id):
     return False
 
 
-def calculate_limit(days_of_week):
+def calculate_limit(days_of_week, weeks):
     today = datetime.now()
-    next_month = (today.month % 12) + 1
-    year = today.year if next_month > 1 else today.year + 1
-    
-    num_days = calendar.monthrange(year, next_month)[1]
-    
+    end_date = today + timedelta(weeks=weeks)  # Calculate the end date after the specified weeks
+
     limit = 0
-    for day in range(1, num_days + 1):
-        weekday = (datetime(year, next_month, day).weekday()) 
+    current_date = today
+
+    while current_date <= end_date:
+        weekday = current_date.weekday()  # Get the current day of the week (0=Monday, 6=Sunday)
         if days_of_week[weekday]:
             limit += 1
-            
+        current_date += timedelta(days=1)  # Move to the next day
+
     return limit
 
 
-def create_goal(db, user_id, title, category, days, reminders):
-    limit = calculate_limit(days)
-    goal_id = str(uuid.uuid4()) 
+
+def create_goal(db, user_id, title, category, days, reminders, weeks):
+    limit = calculate_limit(days, weeks)
+    goal_id = str(uuid.uuid4())
+    #goal_id = "123" 
     goal = {
         "goal_id": goal_id,
         "user_id": user_id,
@@ -59,6 +84,7 @@ def create_goal(db, user_id, title, category, days, reminders):
         "reminders": reminders,
         "times_completed": 0,
         "limit": limit,
+        "weeks": weeks,
         "streak": 0,
         "completed": False,
         "daily_completed": False
@@ -95,11 +121,25 @@ def reset_daily_goals(db):
 
 scheduler = BackgroundScheduler()
 
-# Schedule the reset function
 scheduler.add_job(reset_daily_goals, 'cron', hour=0, minute=0, args=[db])
 scheduler.start()
 
 
+##############TESTING#############
+# def main():
+#     user_name = "John Doe"
+#     user_email = "john.doe@example.com"
+#     user_id = str(uuid.uuid4())
+#     #register_user(db, user_name, user_email, user_id)
+
+#     create_goal(db, 123456, "Breakdown", "Health", [True, True, True, True, True, False, False], True, 4)
+#     update_goal(db, "123")
+
+
+#     #complete_goal(db, 123456, 2468)
+
+# if __name__ == "__main__":
+#     main()
 
 
 #####FIRST ATTEMPT#######
