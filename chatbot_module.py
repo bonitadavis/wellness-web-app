@@ -195,7 +195,6 @@ def call_chatbot(question, history):
     #     convo_history.clear()  # or reset to limit context carry-over
 
 
-call_chatbot
 
 
 
