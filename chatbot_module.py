@@ -37,7 +37,7 @@ from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import PromptTemplate
 
 #api_key = "api  key"
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = ""
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
 
 
 model_id = "mistralai/Mistral-7B-Instruct-v0.2"

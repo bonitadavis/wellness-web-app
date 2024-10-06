@@ -28,28 +28,28 @@ db = client["SMU_HealthTracker"]
 #collection = db["movies"]
 
 
-def register_user(db, name, email, user_id):
+def register_user(db, name, email, userID):
     db.users.insert_one({
         "name": name,
         "email": email,
-        "user_id":user_id
+        "userID":userID
     })
 
 
-def complete_goal(db, user_id, goal_id):
-    goal = db.goals.find_one({"goal_id": goal_id, "user_id": user_id})
+def complete_goal(db, userID, goalID):
+    goal = db.goals.find_one({"goalID": goalID, "userID": userID})
     if goal:
         today_index = datetime.now().weekday()
         if goal['days'][today_index] and not (goal['completed'] or goal['daily_completed']):
             # Increment times_completed and update goal in the DB
             db.goals.update_one(
-                {"goal_id": goal_id},
+                {"goalID": goalID},
                 {"$inc": {"times_completed": 1}},
                 {"$set": {"daily_completed": True}}
             )
             # Check if limit is reached
             if goal['times_completed'] + 1 >= goal['limit']:
-                db.goals.update_one({"goal_id": goal_id}, {"$set": {"completed": True}})
+                db.goals.update_one({"goalID": goalID}, {"$set": {"completed": True}})
             return True
     return False
 
@@ -71,13 +71,13 @@ def calculate_limit(days_of_week, weeks):
 
 
 
-def create_goal(db, user_id, title, category, days, reminders, weeks):
+def create_goal(db, userID, title, category, days, reminders, weeks):
     limit = calculate_limit(days, weeks)
-    goal_id = str(uuid.uuid4())
-    #goal_id = "123" 
+    goalID = str(uuid.uuid4())
+    #goalID = "123" 
     goal = {
-        "goal_id": goal_id,
-        "user_id": user_id,
+        "goalID": goalID,
+        "userID": userID,
         "title": title,
         "category": category,
         "days": days,
@@ -92,9 +92,9 @@ def create_goal(db, user_id, title, category, days, reminders, weeks):
     db.goals.insert_one(goal) 
 
 
-def update_goal(db, goal_id):
+def update_goal(db, goalID):
     db.goals.update_one(
-        {"goal_id": goal_id},
+        {"goalID": goalID},
         {
             "$inc": {"times_completed": 1}, 
             "$set": {"daily_completed": True}  
@@ -102,15 +102,15 @@ def update_goal(db, goal_id):
     )
 
 
-def edit_goal(db, request, goal_id):
+def edit_goal(db, request, goalID):
     if request.method == 'DELETE':
-        db.goals.delete_one({"goal_id": goal_id})
+        db.goals.delete_one({"goalID": goalID})
 
     if request.method == 'PUT':
         data = request.json 
-        update_data = {key: data[key] for key in data if key != 'goal_id'}
+        update_data = {key: data[key] for key in data if key != 'goalID'}
         
-        db.goals.update_one({"goal_id": goal_id}, {"$set": update_data})
+        db.goals.update_one({"goalID": goalID}, {"$set": update_data})
 
 def reset_daily_goals(db):
 
@@ -129,8 +129,8 @@ scheduler.start()
 # def main():
     # user_name = "John Doe"
     # user_email = "john.doe@example.com"
-    # user_id = str(uuid.uuid4())
-    # #register_user(db, user_name, user_email, user_id)
+    # userID = str(uuid.uuid4())
+    # #register_user(db, user_name, user_email, userID)
 
     # create_goal(db, 123456, "Breakdown", "Health", [True, True, True, True, True, False, False], True, 4)
     # update_goal(db, "123")
@@ -175,15 +175,15 @@ scheduler.start()
 #         return jsonify(success=False), response.status_code
 
 
-# def complete_goal(db, user_id, goal_id):
-#     goal = db.users.insert_one({"_id": goal_id, "user_id": user_id})
+# def complete_goal(db, userID, goalID):
+#     goal = db.users.insert_one({"_id": goalID, "userID": userID})
 #     if goal:
 #         today_index = datetime.now().weekday()  # 0 = monday, 6 = sunday and loops every week
 #         if goal['days_of_week'][today_index] and not goal['completed']:
 #             goal['times_completed'] += 1
-#             update_goal(goal_id, datetime.now().date())
+#             update_goal(goalID, datetime.now().date())
 #             if goal['times_completed'] >= goal['limit']:
-#                 db.goals.update_one({"_id": goal_id}, {"$set": {"completed": True}})
+#                 db.goals.update_one({"_id": goalID}, {"$set": {"completed": True}})
 #             return True
 #     return False
 
@@ -202,10 +202,10 @@ scheduler.start()
             
 #     return limit
 
-# def create_goal(db, user_id, title, category, days, reminders):
+# def create_goal(db, userID, title, category, days, reminders):
 #     limit = calculate_limit(days)
 #     goal = {
-#         "user_id": user_id,
+#         "userID": userID,
 #         "title": title,
 #         "category": category,
 #         # "description": description,
@@ -218,10 +218,10 @@ scheduler.start()
 #     }
 #     db.goals.insert_one(goal)
 
-# def update_goal(db, goal_id):
+# def update_goal(db, goalID):
 #     today = datetime.date.today()
 #     db.goals.update_one(
-#         {"_id": goal_id},
+#         {"_id": goalID},
 #         {
 #             "$inc": {"times_completed": 1}, 
 #             "$set": {"completed": True}  
@@ -229,15 +229,15 @@ scheduler.start()
 #     )
 
 
-# def edit_goal(db, request, goal_id):
+# def edit_goal(db, request, goalID):
 #     if request.method == 'DELETE':
-#         db.goals.delete_one({"_id": goal_id})
+#         db.goals.delete_one({"_id": goalID})
 
 #     if request.method == 'PUT':
 #         data = request.json 
-#         update_data = {key: data[key] for key in data if key != 'goal_id'}
+#         update_data = {key: data[key] for key in data if key != 'goalID'}
         
-#         db.goals.update_one({"_id": goal_id}, {"$set": update_data})
+#         db.goals.update_one({"_id": goalID}, {"$set": update_data})
 
 
 
@@ -256,7 +256,7 @@ scheduler.start()
 
 # # Example goal document structure
 # goal_schema = {
-#     "user_id": ObjectId(),  # Reference to user
+#     "userID": ObjectId(),  # Reference to user
 #     "goal_type": "mental",  # or "physical"
 #     "goal_name": "Meditate",
 #     "days_of_week": ["Monday", "Friday"],  # Days to complete the goal
@@ -270,8 +270,8 @@ scheduler.start()
 #     mongo.db.goals.insert_one(data)
 #     return jsonify({"status": "Goal added!"}), 201
 
-# def get_goals(user_id):
-#     goals = mongo.db.goals.find({"user_id": ObjectId(user_id)})
+# def get_goals(userID):
+#     goals = mongo.db.goals.find({"userID": ObjectId(userID)})
 #     return jsonify([goal for goal in goals]), 200
 
 # def send_email_notification(goal):
@@ -317,8 +317,8 @@ scheduler.start()
 #         })
 
 # class Goal:
-#     def __init__(self, user_id, description, category, days):
-#         self.user_id = user_id
+#     def __init__(self, userID, description, category, days):
+#         self.userID = userID
 #         self.description = description
 #         self.category = category
 #         self.days = days
@@ -326,7 +326,7 @@ scheduler.start()
 
 #     def save(self):
 #         mongo.db.users.update_one(
-#             {"_id": self.user_id},
+#             {"_id": self.userID},
 #             {"$push": {"goals": {
 #                 "description": self.description,
 #                 "category": self.category,
@@ -344,15 +344,15 @@ scheduler.start()
 #     access_token = create_access_token(identity=username)
 #     return access_token
 
-# def add_goal(user_id, title, description, consistency, notifications):
-#     create_goal(user_id, title, description, consistency, notifications)
+# def add_goal(userID, title, description, consistency, notifications):
+#     create_goal(userID, title, description, consistency, notifications)
 
-# def complete_goal(user_id, goal_id):
-#     goal = mongo.db.goals.find_one({"_id": goal_id, "user_id": user_id})
+# def complete_goal(userID, goalID):
+#     goal = mongo.db.goals.find_one({"_id": goalID, "userID": userID})
 #     if goal:
 #         today = datetime.now().date()
 #         if today.strftime("%A") in goal['consistency']:
-#             update_goal(goal_id, today)
+#             update_goal(goalID, today)
 #             # Update streak logic
 #             return True
 #     return False
