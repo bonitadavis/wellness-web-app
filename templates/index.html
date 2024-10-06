@@ -3,27 +3,107 @@
 {% block title %}SMU Mental Health and Wellness{% endblock %}
 
 {% block content %}
+    <script 
+        src="https://www.unpkg.com/@propelauth/javascript@2.0.11/dist/javascript.min.js" 
+        integrity="sha384-FENNH2f7QuQvkZJBL7jebLr0OtYKgTA2iq+C5g3VXXX7SBwWmeMMoc+pBBtcn76G" 
+        crossorigin="anonymous"></script>
+
+    <script type="module" src="{{ url_for('static', filename='index.js') }}"></script>
+
    <section class="jumbotron text-center">
-       <div class="container">
+       <div class="container" id="display-when-logged-out">
            <h1 class="jumbotron-heading">Welcome!</h1>
            <p class="lead text-muted">
            Please login to the platform!
            </p>
-           <a class="btn btn-primary my-2" href="#">Login</a>
-           <a class="btn btn-secondary my-2" href="#">Sign up</a>
+           <button class="btn btn-primary my-2" id="login">Login</button>
+           <button class="btn btn-secondary my-2" id="signup">Sign up</button>
+       </div>
+       <div class="container" id="display-when-logged-in" style="display: none;">
+           <h1 class="jumbotron-heading">Welcome!</h1>
+           <p class="lead text-muted">
+           You are logged in, <span id="email"></span>
+           </p>
+           <button class="btn btn-primary my-2" id="account">Account</button>
+           <button class="btn btn-secondary my-2" id="logout">Logout</button>
        </div>
    </section>
 
-   <h2>Goals for {{data[0]['name']}}</h2>
 
-   {% for goal in data[1:] %}
+   {% if incomplete_goals|length > 0 %}
+   <div class="container">
+   <h2>Goals for {{profile_data['name']}}</h2>
+   {% for goal in incomplete_goals %}
+       <div class="col-4">
        <a href="#"><h2>{{ goal['title'] }}</h2></a>
        <div class="pie" style="--p:{{ (goal['days'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
-       <form action="/update?goal={{ loop.index }}" method="post">
+       <form action="/update?goal={{ goal['goalID'] }}" method="post">
            <button type="submit">Update goal</button>
        </form>
-       <hr />
+       </div>
    {% endfor %}
+   {% else %}
+   <p>No goals in progress for {{profile_data['name']}}</p>
+   {% endif %}
+  
+   <br/>
+   <hr/>
+   <br/>
 
+   {% if complete_goals|length > 0 %}
+   <h2>Completed goals for {{profile_data['name']}}</h2>
+   <div class="container">
+   {% for goal in complete_goals %}
+       <div class="col-4">
+       <a href="#"><h2>{{ goal['title'] }}</h2></a>
+       <div class="pie" style="--p:{{ (goal['days'] / goal['limit'] * 100) | int }};--c:{{ goal['color'] }}"></div>
+       <form action="/update?goal={{ goal['goalID'] }}" method="post">
+           <button type="submit">Update goal</button>
+       </form>
+       </div>
+   {% endfor %}
+   </div>
+   {% else %}
+   <p>No completed goals for {{profile_data['name']}}</p>
+   {% endif %}
+
+   <br />
+   <hr />
+   <br />
+
+    <form onsubmit="return setNewGoalAction(this)" method="post">
+        <label for="name">Name of goal:</label>
+        <input type="text" id="name" name="name" required maxlength="25" size="10" /><br/>
+        <label for="type">Type of goal:</label>
+        <input type="radio" name="type">Physical</input>
+        <input type="radio" name="type">Mental</input><br/>
+        <label for="day">Days for goal:</label>
+        <input type="checkbox" id="0" name="day">Monday</input>
+        <input type="checkbox" id="1" name="day">Tuesday</input>
+        <input type="checkbox" id="2" name="day">Wednesday</input>
+        <input type="checkbox" id="3" name="day">Thursday</input>
+        <input type="checkbox" id="4" name="day">Friday</input>
+        <input type="checkbox" id="5" name="day">Saturday</input>
+        <input type="checkbox" id="6" name="day">Sunday</input><br/>
+        <input type="checkbox" id="notifs">Notifications<br/>
+        <label for="weeks">Number of weeks for goal:</label>
+        <input type="number" id="weeks" min="1" max="208" /><br/>
+        <button type="submit">Add goal</button>
+    </form>
+
+    <script>
+    function setNewGoalAction(form) {
+        let name = document.getElementById("name").value;
+        let t = Array.from(document.getElementsByName("type")).map(x => x.checked);
+        let type = t[0] ? "physical" : "mental";
+        let d = Array.from(document.getElementsByName("day")).map(x => x.checked + 0);
+        let notif = document.getElementById("notifs").checked + 0;
+        let weeks = document.getElementById("weeks").value;
+        form.action = "/add?name=" + name + "&type=" + type + "&d0=" + d[0] +
+           "&d1=" + d[1] + "&d2=" + d[2] + "&d3=" + d[3] + "&d4=" + d[4] + "&d5=" + d[5] + "&d6=" + d[6] +
+           "&notifs=" + notif + "&weeks=" + weeks;
+        return true;
+    }
+    </script>
 
 {% endblock %}
