@@ -104,13 +104,13 @@ def update_goal(db, goal_id):
 
 def edit_goal(db, request, goal_id):
     if request.method == 'DELETE':
-        db.goals.delete_one({"_id": goal_id})
+        db.goals.delete_one({"goal_id": goal_id})
 
     if request.method == 'PUT':
         data = request.json 
         update_data = {key: data[key] for key in data if key != 'goal_id'}
         
-        db.goals.update_one({"_id": goal_id}, {"$set": update_data})
+        db.goals.update_one({"goal_id": goal_id}, {"$set": update_data})
 
 def reset_daily_goals(db):
 
@@ -127,16 +127,14 @@ scheduler.start()
 
 ##############TESTING#############
 # def main():
-#     user_name = "John Doe"
-#     user_email = "john.doe@example.com"
-#     user_id = str(uuid.uuid4())
-#     #register_user(db, user_name, user_email, user_id)
+    # user_name = "John Doe"
+    # user_email = "john.doe@example.com"
+    # user_id = str(uuid.uuid4())
+    # #register_user(db, user_name, user_email, user_id)
 
-#     create_goal(db, 123456, "Breakdown", "Health", [True, True, True, True, True, False, False], True, 4)
-#     update_goal(db, "123")
-
-
-#     #complete_goal(db, 123456, 2468)
+    # create_goal(db, 123456, "Breakdown", "Health", [True, True, True, True, True, False, False], True, 4)
+    # update_goal(db, "123")
+    #complete_goal(db, 123456, 2468)
 
 # if __name__ == "__main__":
 #     main()

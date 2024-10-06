@@ -83,12 +83,11 @@ scheduler.start()
 
 
 # def main():
-#     goal = db.goals.find_one({"user_id": 123456, "goal_id": 123})
-#     db.users.update_one({"user_id": 123456},  {"$set": {"name": "John"}})
-#     print(goal)
-#     user = db.users.find_one({"user_id": 123456})
+#     goal = db.goals.find_one({"goal_id": "123"})
+#     db.users.update_one({"userID": "123456"},  {"$set": {"name": "John"}})
+#     user = db.users.find_one({"userID": "123456"})
 #     name = user.get("name")
-#     send_email("nsavova@smu.edu", "title goes here", "evening", "user name")
+#     send_email("nsavova@smu.edu", goal["title"], "evening", name)
 
 # if __name__ == "__main__":
 #     main()
