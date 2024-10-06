@@ -60,6 +60,16 @@ Question: {question}
 
 name_prompt = PromptTemplate.from_template(NAME_PROMPT_TEMPLATE)
 
+resources = """
+    {
+    "SMU resources": [
+    {"therapy": "SMU Teletherapy by AcademicLiveCare: High-quality, on-demand mental health care designed specifically for students. All SMU students can now initiate on-demand counseling and video appointments with a medical professional. Find out more [here](https://www.smu.edu/studentaffairs/drbobsmithhealthcenter/counseling-services/mentalhealthapps/smu-teletherapy)."},
+    {"recovery": "Collegiate Recovery Community at SMU: Struggling with substance abuse or addiction and need a change? There are students right here on campus going through the same thing who are here to support you. ind out more [here](https://www.smu.edu/studentaffairs/drbobsmithhealthcenter/counseling-services/counselingoptions)."},
+    {"wellness": "Campus Well: Check out SMU's health and well-being blog! This site has tons of information written by students for students. Read articles, watch videos, take quizzes and more! ind out more [here](https://smu.campuswell.com/)."},
+    {"habits": "WellTrack: Looking for more ways to improve your mental health? Check out WellTrack, SMU's FREE mental health app. The app contains meditation exercises, daily mood checks, stress reduction tips, and much more to help you manage stress, depression, and anxiety while at college. ind out more [here](http://smu.welltrack.com/)."},
+    {"mental health" : "TogetherAll: Mental health support. 24/7. Confidential, online peer community. Find out more [here](https://account.v2.togetherall.com/register/student)."}
+    ]
+}"""
 
 
 prompt = ChatPromptTemplate.from_messages(
@@ -68,8 +78,10 @@ prompt = ChatPromptTemplate.from_messages(
             "system",
             "You are a helpful assistant focused solely on helping users set productive MENTAL or PHYSICAL health goals. If the user's question is completely unrelated to health goals, respond with: 'I'm sorry, but I can only assist with questions related to health goals.' Do not infer or generate context-based responses. Keep your responses short and NO REPETITION.",
         ),
+        ("system", "{context}"),
         ("placeholder", "{chat_history}"),
         ("human", "Current question: {input}"),
+
     ]
 )
 
@@ -103,6 +115,21 @@ while True:
     is_health_related = any(keyword in q.lower() for keyword in ["health", "goal", "nutrition", "exercise", "mental", "wellness", "meditation", "yoga"])
 
     is_goal_creation = "create goal" in q.lower() or "set a goal" in q.lower()
+
+    # resource_response = ""
+    # if "teletherapy" in q.lower():
+    #     resource_response = resources["teletherapy"]
+    # elif "recovery" in q.lower():
+    #     resource_response = resources["recovery"]
+    # elif "wellness" in q.lower():
+    #     resource_response = resources["wellness"]
+    # elif "mental health" in q.lower():
+    #     resource_response = resources["mental health"]
+    # elif "mental health management" in q.lower():
+    #     resource_response = resources["mental health management"]
+
+    
+    
 
 
     if is_greeting:
@@ -142,7 +169,8 @@ while True:
     # Prepare the input data for the model
     input_data = {
         "input": prompt_text,
-        "chat_history": convo_history.messages
+        "chat_history": convo_history.messages,
+        "context" : resources
     }
 
     # Invoke the chain with the current input and conversation history
